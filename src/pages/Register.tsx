@@ -1,15 +1,17 @@
+// pages/RegisterPage.tsx
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useLogin } from "../queries/auth";
+import { useNavigate } from "react-router-dom";
+import { useRegister } from "../queries/auth";
 
-const Login = () => {
+const RegisterPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     id: "",
     password: "",
+    nickname: "",
   });
 
-  const { mutate: login, isPending } = useLogin();
+  const { mutate: register, isPending, error } = useRegister();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,24 +21,30 @@ const Login = () => {
     }));
   };
 
-  // pages/LoginPage.tsx의 handleSubmit 수정
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login(formData, {
+    register(formData, {
       onSuccess: () => {
-        alert("로그인 성공!");
-        navigate("/todos"); // '/mypage' 대신 '/todos'로 변경
+        alert("회원가입이 완료되었습니다.");
+        navigate("/login");
       },
-      onError: (error) => {
-        alert("로그인에 실패했습니다.");
-        console.error(error);
+      onError: (error: any) => {
+        // 타입 수정 필요
+        console.log("Error details:", error); // 자세한 에러 내용 확인
+        alert(`회원가입 실패: ${error.message}`);
       },
     });
   };
 
+  // 에러 메시지 표시
+  if (error) {
+    console.log("Error state:", error); // 에러 상태 확인
+    return <div>Error occurred: {error.message}</div>;
+  }
+
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6">로그인</h1>
+      <h1 className="text-2xl font-bold mb-6">회원가입</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="id" className="block mb-1">
@@ -66,27 +74,31 @@ const Login = () => {
             required
           />
         </div>
+        <div>
+          <label htmlFor="nickname" className="block mb-1">
+            닉네임
+          </label>
+          <input
+            type="text"
+            id="nickname"
+            name="nickname"
+            value={formData.nickname}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+
         <button
           type="submit"
           disabled={isPending}
           className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
         >
-          {isPending ? "로그인 중..." : "로그인"}
+          {isPending ? "처리중..." : "회원가입"}
         </button>
       </form>
-      <div className="mt-4 text-center">
-        <p className="text-gray-600">
-          계정이 없으신가요?{" "}
-          <Link
-            to="/register"
-            className="text-blue-500 hover:text-blue-700 font-medium"
-          >
-            회원가입
-          </Link>
-        </p>
-      </div>
     </div>
   );
 };
 
-export default Login;
+export default RegisterPage;
