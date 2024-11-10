@@ -1,15 +1,15 @@
 // pages/TodoListPage.tsx
 import { useEffect, useState } from "react";
-import { Todo } from "../types/todo";
 import { authAPI } from "../api/auth";
 import { useNavigate } from "react-router-dom";
 import { UserInfo } from "../types/auth";
+import { useTodoStore } from "../stores/todoStore";
 
 const TodoList = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const navigate = useNavigate();
+  const { todos, addTodo, toggleTodo, deleteTodo } = useTodoStore();
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -27,6 +27,14 @@ const TodoList = () => {
     fetchUserInfo();
   }, [navigate]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTodo.trim()) return;
+
+    addTodo(newTodo); // zustand store의 addTodo 사용
+    setNewTodo("");
+  };
+
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
       {userInfo && (
@@ -40,7 +48,7 @@ const TodoList = () => {
         <h1 className="text-2xl font-bold">할 일 목록</h1>
         <div className="space-x-2">
           <button
-            onClick={() => navigate("/mypage")} // 마이페이지 버튼 추가
+            onClick={() => navigate("/mypage")}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             마이페이지
@@ -58,19 +66,7 @@ const TodoList = () => {
       </div>
 
       {/* Todo 입력 폼 */}
-      <form
-        className="mb-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!newTodo.trim()) return;
-
-          setTodos([
-            ...todos,
-            { id: Date.now(), title: newTodo, completed: false },
-          ]);
-          setNewTodo("");
-        }}
-      >
+      <form className="mb-6" onSubmit={handleSubmit}>
         <div className="flex gap-2">
           <input
             type="text"
@@ -89,9 +85,9 @@ const TodoList = () => {
       </form>
 
       {/* Todo 목록 */}
-      <ul className="space-y-2">
+      <div className="space-y-2">
         {todos.map((todo) => (
-          <li
+          <div
             key={todo.id}
             className="flex items-center justify-between p-3 bg-gray-50 rounded"
           >
@@ -99,13 +95,7 @@ const TodoList = () => {
               <input
                 type="checkbox"
                 checked={todo.completed}
-                onChange={() => {
-                  setTodos(
-                    todos.map((t) =>
-                      t.id === todo.id ? { ...t, completed: !t.completed } : t
-                    )
-                  );
-                }}
+                onChange={() => toggleTodo(todo.id)}
                 className="w-4 h-4"
               />
               <span
@@ -115,16 +105,14 @@ const TodoList = () => {
               </span>
             </div>
             <button
-              onClick={() => {
-                setTodos(todos.filter((t) => t.id !== todo.id));
-              }}
+              onClick={() => deleteTodo(todo.id)}
               className="px-2 py-1 text-sm text-red-500 hover:text-red-700"
             >
               삭제
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
