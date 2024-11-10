@@ -29,6 +29,13 @@ const TodoList = () => {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+      {userInfo && (
+        <div className="mb-4 p-2 bg-gray-50 rounded">
+          <span className="text-sm text-gray-600">
+            {userInfo.nickname}님의 할 일 목록
+          </span>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">할 일 목록</h1>
         <div className="space-x-2">
